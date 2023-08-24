@@ -13,16 +13,6 @@ class GameState with ChangeNotifier {
   late List<Position> greenInitital;
   late List<Position> yellowInitital;
 
-  late List<Token> blueReached = [];
-  late List<Token> redReached = [];
-  late List<Token> greenReached = [];
-  late List<Token> yellowReached = [];
-
-
-  late int redHome = 0;
-  late int greenHome = 0;
-  late int yellowHome = 0;
-  late int blueHome = 0;
 
   GameState() {
     gameTokens = [
@@ -69,7 +59,7 @@ class GameState with ChangeNotifier {
     if (token.tokenState == TokenState.home) return;
     if (token.tokenState == TokenState.initial && steps != 6) return;
     if (token.tokenState == TokenState.initial && steps == 6) {
-      destination = _getPosition(token.type, 0, token);
+      destination = _getPosition(token.type, 0);
       pathPosition = 0;
 
       _updateInitalPositions(token);
@@ -77,17 +67,11 @@ class GameState with ChangeNotifier {
       gameTokens[token.id]?.tokenPosition = destination;
       gameTokens[token.id]?.positionInPath = pathPosition;
 
-      if(destination == const Position(7,6)
-          || destination == const Position(6,7)
-          || destination == const Position(7,8)
-          || destination == const Position(8,7)){
-        addToReachedDestination(token, token.type);
-      }
       notifyListeners();
     } else if (token.tokenState != TokenState.initial) {
       int step = token.positionInPath + steps;
       if (step > 56) return;
-      destination = _getPosition(token.type, step, token);
+      destination = _getPosition(token.type, step);
       pathPosition = step;
       var cutToken = _updateBoardState(token, destination, pathPosition);
 
@@ -96,7 +80,7 @@ class GameState with ChangeNotifier {
         duration = duration + 300;
         var future = Future.delayed(Duration(milliseconds: duration), () {
           int stepLoc = token.positionInPath + 1;
-          gameTokens[token.id]?.tokenPosition =_getPosition(token.type,stepLoc, token);
+          gameTokens[token.id]?.tokenPosition =_getPosition(token.type,stepLoc);
           gameTokens[token.id]?.positionInPath = stepLoc;
           token.positionInPath = stepLoc;
           notifyListeners();
@@ -109,7 +93,7 @@ class GameState with ChangeNotifier {
           var future2 = Future.delayed(Duration(milliseconds: duration), () {
             int stepLoc = cutToken.positionInPath - 1;
             gameTokens[cutToken.id]?.tokenPosition =
-                _getPosition(cutToken.type, stepLoc, token);
+                _getPosition(cutToken.type, stepLoc);
             gameTokens[cutToken.id]?.positionInPath = stepLoc;
             cutToken.positionInPath = stepLoc;
             notifyListeners();
@@ -121,14 +105,12 @@ class GameState with ChangeNotifier {
           notifyListeners();
         });
       }
-      if(destination == const Position(7,6)
-          || destination == const Position(6,7)
-          || destination == const Position(7,8)
-          || destination == const Position(8,7)){
-        addToReachedDestination(token, token.type);
+      if(pathPosition == 56) { // It could be any of Path-length
+        token.tokenState = TokenState.home;
       }
 
     }
+
   }
 
   Token? _updateBoardState(Token token, Position destination, int pathPosition){
@@ -221,64 +203,34 @@ class GameState with ChangeNotifier {
     }
   }
 
-  Position _getPosition(TokenType type, step, Token token) {
+  Position _getPosition(TokenType type, step) {
     Position destination;
     switch (type) {
       case TokenType.green:
         {
           List<int> node = Path.greenPath[step];
           destination = Position(node[0], node[1]);
-          //destination == const Position(7,6)? greenReached.add(token) : " ";
         }
         break;
       case TokenType.yellow:
         {
           List<int> node = Path.yellowPath[step];
           destination = Position(node[0], node[1]);
-          //destination == const Position(6,7)? greenReached.add(token) : " ";
         }
         break;
       case TokenType.blue:
         {
           List<int> node = Path.bluePath[step];
           destination = Position(node[0], node[1]);
-          //destination == const Position(7,8)? greenReached.add(token) : " ";
         }
         break;
       case TokenType.red:
         {
           List<int> node = Path.redPath[step];
           destination = Position(node[0], node[1]);
-          //destination == const Position(8,7)? greenReached.add(token) : " ";
         }
         break;
     }
-    token.setTokenPosition(destination);
-    //notifyListeners();
     return destination;
-  }
-
-  void addToReachedDestination(Token token, TokenType type){
-    switch(type){
-      case TokenType.green: greenReached.add(token); break;
-      case TokenType.yellow: yellowReached.add(token); break;
-      case TokenType.blue: blueReached.add(token); break;
-      case TokenType.red: redReached.add(token); break;
-      default: return;
-    }
-    notifyListeners();
-  }
-
-  void hommeState(token) {
-    if(token.type == TokenType.red) {
-      redHome++;
-    } else if(token.type == TokenType.green) {
-      greenHome++;
-    }else if(token.type == TokenType.yellow) {
-      yellowHome++;
-    }else if(token.type == TokenType.blue) {
-      blueHome++;
-    }
-    notifyListeners();
   }
 }

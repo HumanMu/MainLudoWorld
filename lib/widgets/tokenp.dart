@@ -3,7 +3,6 @@ import 'package:ludo_world_war/constants/constant_variables.dart';
 import 'package:provider/provider.dart';
 import '../game_engine/models/dice_model.dart';
 import '../game_engine/models/game_state.dart';
-import '../game_engine/models/position.dart';
 import '../game_engine/models/token.dart';
 import '../shared/functions.dart';
 
@@ -24,11 +23,29 @@ class Tokenp extends StatelessWidget {
   void callNextPlayer(DiceModel dice, GameState gameState) async {
     String color = splitByPoint(dice.diceColor);
     await gameState.moveToken(token, dice.diceOne);
-    //bool reached = isReachedDestination(token, token.type);    // Check if the user reached home
     await Future.delayed(const Duration(seconds: 1));
     dice.nextPlayer(color);
   }
 
+  void checkMoveState(DiceModel dice, GameState state) {
+    // Very important that you don't change the orders of the following states
+    if(token.tokenState == TokenState.home) return; // If the clicked token has reached home
+    if(token.tokenState == TokenState.initial && dice.diceOne != 6) return;
+    if(dice.moveState == false) return;
+    bool tokenAndPlayerColorResult = tokenAndPlayerColor(dice);
+    if(tokenAndPlayerColorResult == false) return;
+    bool moveSpace = hasEnoughSpaceToMove(dice, state); // If all other the above is correct check that there are enough space to move to
+    if(moveSpace == false) return;
+
+    // If all the above is good, do the bellow
+    dice.diceOne==6
+        ? state.moveToken(token, dice.diceOne)
+        : {callNextPlayer(dice, state),
+    };
+
+    dice.setMoveState(false);
+    dice.setDiceState(true);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,23 +59,7 @@ class Tokenp extends StatelessWidget {
       height: dimentions[3],
       child: GestureDetector(
         onTap: (){
-          if(dice.moveState == true) {
-            bool result = idetifyClicks(dice);
-            if(result) {
-              dice.diceOne==6
-                  ? gameState.moveToken(token, dice.diceOne)
-                  : {callNextPlayer(dice, gameState),
-              };
-            }
-            else{
-              return;
-            }
-          }
-          else{
-            return;
-          }
-          dice.setMoveState(false);
-          dice.setDiceState(true);
+          checkMoveState(dice, gameState);
         },
         child: Card(
           elevation: 5,
@@ -72,14 +73,15 @@ class Tokenp extends StatelessWidget {
                     blurRadius: 5.0, // soften the shadow
                     spreadRadius: 1.0, //extend the shadow
                   )
-                ]),
+                ]
+            ),
           ),
         ),
       ),
     );
   }
 
-  bool idetifyClicks(DiceModel dice) {
+  bool tokenAndPlayerColor(DiceModel dice) {
     if(token.type == dice.diceOneColor) {
       return true;
     }else{
@@ -87,24 +89,16 @@ class Tokenp extends StatelessWidget {
       return false;
     }
   }
-
-  bool isReachedDestination(Token token, type) {
-    bool isReached = false;
-    switch(type) {
-      case TokenType.green:
-        isReached = token.tokenPosition == const Position(7,6)? true : false;
-        break;
-      case TokenType.yellow:
-        isReached = token.tokenPosition == const Position(6,7)? true : false;
-        break;
-      case TokenType.blue:
-        isReached = token.tokenPosition == const Position(7,8)? true : false;
-        break;
-      case TokenType.red:
-        isReached = token.tokenPosition == const Position(8,7)? true : false;
-        break;
-    }
-    return isReached;
+  hasEnoughSpaceToMove(DiceModel dice, GameState state){
+    int newPositionInPath = token.positionInPath + dice.diceOne;
+    bool result = newPositionInPath <= 56 ? true : false;
+    return result;
   }
+
+
+
+
+
+
 
 }

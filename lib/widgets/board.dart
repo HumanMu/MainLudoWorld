@@ -30,7 +30,7 @@ class Board extends StatelessWidget {
       child: Card(
         elevation: 10,
         child: Container(
-           decoration: const BoxDecoration(
+          decoration: const BoxDecoration(
             image: DecorationImage(
               image: AssetImage("assets/ludo_board.png"),
               fit: BoxFit.fill,

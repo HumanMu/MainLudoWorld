@@ -15,13 +15,14 @@ enum TokenState{
   safe,
   safeinpair
 }
+
 class Token extends ChangeNotifier
 {
   final int  id;
   final TokenType type;
   Position tokenPosition;
   TokenState tokenState;
-  late int positionInPath;
+  late int positionInPath = 0;
 
   Position get movedToken => tokenPosition;
   Token(
@@ -37,3 +38,4 @@ class Token extends ChangeNotifier
   }
 
 }
+

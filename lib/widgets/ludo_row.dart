@@ -15,8 +15,8 @@ class LudoRow extends StatelessWidget {
             decoration: BoxDecoration(
                 border: Border(
                   left: const BorderSide(color: Colors.grey),
-                  right:
-                  i == 14 ? const BorderSide(color: Colors.white) : BorderSide.none,
+                  right: i == 14 ? const BorderSide(color: Colors.white)
+                      : BorderSide.none,
                 ),
                 color: Utility.getColor(row, i)//Colors.transparent,
             ),
